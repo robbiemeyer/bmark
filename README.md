@@ -13,7 +13,7 @@ To load the bmark function source the script:
 ### Set up the bookmark file
 To set up the bookmark file set the variable `$BMARKFILE` to your desired location:
 ```
-$BMARKFILE=path/to/bmarkfile.txt
+BMARKFILE=path/to/bmarkfile.txt
 ```
 The file can have any name. It is not required to set the variable using export (bmark does not run in a subshell).
 
