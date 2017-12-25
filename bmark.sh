@@ -34,7 +34,7 @@ function bmark {
     if [ -z "$bmarkflags" ]
     then
 
-      local dir=$(grep -x "${1}→.*" $BMARKFILE 2> /dev/null | cut -d '→' -f2- 2> /dev/null)
+      local dir=$(grep -x "${1}~.*" $BMARKFILE 2> /dev/null | cut -d '~' -f2- 2> /dev/null)
       if [ -z "$dir" ]
       then
         echo "Bookmark does not exist"
@@ -45,22 +45,22 @@ function bmark {
     elif [ "$bmarkflags" = "add" ]
     then
       
-      if $(cut -d '→' -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
+      if $(cut -d '~' -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
       then
         echo "Bookmark already exists"
       elif [ $2 ]
       then
-        echo "${1}→${2}" >> $BMARKFILE
+        echo "${1}~${2}" >> $BMARKFILE
       else
-        echo "${1}→${PWD}" >> $BMARKFILE
+        echo "${1}~${PWD}" >> $BMARKFILE
       fi
 
     elif [ "$bmarkflags" = "remove" ]
     then
       
-      if $(cut -d '→' -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
+      if $(cut -d '~' -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
       then
-        sed "/${1}→.*/d" $BMARKFILE > /tmp/bmarktemp
+        sed "/${1}~.*/d" $BMARKFILE > /tmp/bmarktemp
         mv /tmp/bmarktemp $BMARKFILE
       else
         echo "Bookmark does not exist"
@@ -71,7 +71,7 @@ function bmark {
 
       if [ -s $BMARKFILE ]
       then
-        echo -e 'Bookmark→Path\n========→====' | cat - $BMARKFILE | column -t -s '→' 
+        echo -e 'Bookmark~Path\n========~====' | cat - $BMARKFILE | column -t -s '~' 
       else
         echo "No bookmarks found"
       fi
