@@ -41,7 +41,7 @@ function bmark {
       then
         echo "Bookmark does not exist"
       else
-        echo $dir
+        cd $dir
       fi
 
     elif [ "$bmarkflags" = "add" ]
