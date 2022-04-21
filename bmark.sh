@@ -81,9 +81,10 @@ function bmark {
       then
 
         local maxlen=$(echo Bookmark | cat - $BMARKFILE | cut -d "$delim" -f1 | wc -L)
-        local fmt="%-${maxlen}s  %s\n"
+        local maxlen=$((maxlen + 2))
+        local fmt="%-${maxlen}s%s\n"
 
-        printf $fmt  Bookmark   Path
+        printf $fmt Bookmark Path
         printf $fmt "========" "===="
         while IFS="$delim" read -r name dir
         do
