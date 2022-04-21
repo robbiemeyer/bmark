@@ -1,4 +1,4 @@
-#Should not be run in a subshell
+# Should not be run in a subshell
 
 function bmark {
   local bmarkusage='Usage: bmark  {BMARK} go to {BMARK}
@@ -7,9 +7,11 @@ function bmark {
       -r {BMARK} remove bookmark named {BMARK}
       -l         list all bookmarks'
 
+  local delim='~'
+
   if [ -z "$BMARKFILE" ]
   then
-    echo '$BMARKFILE is unset'
+    echo '$BMARKFILE is unset' 1>&2
     return 1
   fi
 
@@ -20,7 +22,7 @@ function bmark {
   else
     local o bmarkflags OPTIND
 
-    while getopts "a:r:lh" o
+    while getopts ":a:r:lh" o
     do
       case "$o" in
         r) bmarkflags=${bmarkflags}remove ;;
@@ -34,36 +36,42 @@ function bmark {
     if [ -z "$bmarkflags" ]
     then
 
-      local dir=$(grep -x "${1}~.*" $BMARKFILE 2> /dev/null | cut -d '~' -f2- 2> /dev/null)
+      local dir=$(grep -x "${1}${delim}.*" $BMARKFILE 2> /dev/null | cut -d "$delim" -f2- 2> /dev/null)
       if [ -z "$dir" ]
       then
         echo "Bookmark does not exist"
       else
-        cd $dir
+        echo $dir
       fi
 
     elif [ "$bmarkflags" = "add" ]
     then
       
-      if $(cut -d '~' -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
+      if $(cut -d "$delim" -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
       then
-        echo "Bookmark already exists"
+        echo "Bookmark already exists" 1>&2
+        return 1
+      elif [ -z "${1##*$delim*}" ]
+      then
+        echo "The bmark name can not contain '$delim' as it is the current bmark delimiter" 1>&2
+        return 1
       elif [ $2 ]
       then
-        echo "${1}~${2}" >> $BMARKFILE
+        echo "${1}${delim}${2}" >> $BMARKFILE
       else
-        echo "${1}~${PWD}" >> $BMARKFILE
+        echo "${1}${delim}${PWD}" >> $BMARKFILE
       fi
 
     elif [ "$bmarkflags" = "remove" ]
     then
       
-      if $(cut -d '~' -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
+      if $(cut -d "$delim" -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
       then
-        sed "/${1}~.*/d" $BMARKFILE > /tmp/bmarktemp
+        sed "/${1}${delim}.*/d" $BMARKFILE > /tmp/bmarktemp
         mv /tmp/bmarktemp $BMARKFILE
       else
-        echo "Bookmark does not exist"
+        echo "Bookmark does not exist" 1>&2
+        return 1
       fi
 
     elif [ "$bmarkflags" = "list" ]
@@ -71,15 +79,17 @@ function bmark {
 
       if [ -s $BMARKFILE ]
       then
-        echo -e 'Bookmark~Path\n========~====' | cat - $BMARKFILE | column -t -s '~' 
+        echo -e "Bookmark${delim}Path\n========${delim}====" | cat - $BMARKFILE | column -t -s "$delim" -l 2
       else
-        echo "No bookmarks found"
+        echo "No bookmarks found" 1>&2
+        return 1
       fi
 
     else
 
-      echo "Invalid command"
-      echo $bmarkusage
+      echo "Invalid command" 1>&2
+      echo $bmarkusage 1>&2
+      return 1
 
     fi
   fi
