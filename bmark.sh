@@ -79,7 +79,17 @@ function bmark {
 
       if [ -s $BMARKFILE ]
       then
-        echo -e "Bookmark${delim}Path\n========${delim}====" | cat - $BMARKFILE | column -t -s "$delim" -l 2
+
+        local maxlen=$(echo Bookmark | cat - $BMARKFILE | cut -d "$delim" -f1 | wc -L)
+        local fmt="%-${maxlen}s  %s\n"
+
+        printf $fmt  Bookmark   Path
+        printf $fmt "========" "===="
+        while IFS="$delim" read -r name dir
+        do
+          printf $fmt $name $dir
+        done < $BMARKFILE
+
       else
         echo "No bookmarks found" 1>&2
         return 1
