@@ -1,5 +1,7 @@
 # Should not be run in a subshell
 
+BMARKDELIM='~'
+
 function bmark {
   local bmarkusage='Usage: bmark  {BMARK} go to {BMARK}
       -a {BMARK} add bookmark named {BMARK} to current directory
@@ -7,7 +9,6 @@ function bmark {
       -r {BMARK} remove bookmark named {BMARK}
       -l         list all bookmarks'
 
-  local delim='~'
 
   if [ -z "$BMARKFILE" ]
   then
@@ -36,7 +37,7 @@ function bmark {
     if [ -z "$bmarkflags" ]
     then
 
-      local dir=$(grep -x "${1}${delim}.*" $BMARKFILE 2> /dev/null | cut -d "$delim" -f2- 2> /dev/null)
+      local dir=$(grep -x "${1}${BMARKDELIM}.*" $BMARKFILE 2> /dev/null | cut -d "$BMARKDELIM" -f2- 2> /dev/null)
       if [ -z "$dir" ]
       then
         echo "Bookmark does not exist"
@@ -47,27 +48,27 @@ function bmark {
     elif [ "$bmarkflags" = "add" ]
     then
       
-      if $(cut -d "$delim" -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
+      if $(cut -d "$BMARKDELIM" -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
       then
         echo "Bookmark already exists" 1>&2
         return 1
-      elif [ -z "${1##*$delim*}" ]
+      elif [ -z "${1##*$BMARKDELIM*}" ]
       then
-        echo "The bmark name can not contain '$delim' as it is the current bmark delimiter" 1>&2
+        echo "The bmark name can not contain '$BMARKDELIM' as it is the current bmark delimiter" 1>&2
         return 1
       elif [ $2 ]
       then
-        echo "${1}${delim}${2}" >> $BMARKFILE
+        echo "${1}${BMARKDELIM}${2}" >> $BMARKFILE
       else
-        echo "${1}${delim}${PWD}" >> $BMARKFILE
+        echo "${1}${BMARKDELIM}${PWD}" >> $BMARKFILE
       fi
 
     elif [ "$bmarkflags" = "remove" ]
     then
       
-      if $(cut -d "$delim" -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
+      if $(cut -d "$BMARKDELIM" -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
       then
-        sed "/${1}${delim}.*/d" $BMARKFILE > /tmp/bmarktemp
+        sed "/${1}${BMARKDELIM}.*/d" $BMARKFILE > /tmp/bmarktemp
         mv /tmp/bmarktemp $BMARKFILE
       else
         echo "Bookmark does not exist" 1>&2
@@ -80,15 +81,15 @@ function bmark {
       if [ -s $BMARKFILE ]
       then
 
-        local maxlen=$(echo Bookmark | cat - $BMARKFILE | cut -d "$delim" -f1 | wc -L)
+        local maxlen=$(echo Bookmark | cat - $BMARKFILE | cut -d "$BMARKDELIM" -f1 | wc -L)
         local maxlen=$((maxlen + 2))
         local fmt="%-${maxlen}s%s\n"
 
         printf $fmt Bookmark Path
         printf $fmt "========" "===="
-        while IFS="$delim" read -r name dir
+        while IFS="$BMARKDELIM" read -r name dir
         do
-          printf $fmt $name $dir
+          printf $fmt "$name" "$dir"
         done < $BMARKFILE
 
       else
@@ -106,3 +107,26 @@ function bmark {
   fi
 }
 
+function _bmark_compl() {
+  echo $(cut -d "$BMARKDELIM" -f1 $BMARKFILE 2> /dev/null | grep "^${1}" 2> /dev/null)
+}
+
+function _bmark_compl_bash() {
+  COMPREPLY=( $(_bmark_compl ${COMP_WORDS[COMP_CWORD]}) )
+}
+
+function _bmark_compl_zsh() {
+  compadd $(_bmark_compl $PREFIX)
+}
+
+if type complete &>/dev/null
+then
+    # bash
+    complete -F _bmark_compl_bash bmark
+    complete -F _bmark_compl_bash bmark -r
+elif type compdef &>/dev/null
+then
+    # zsh
+    compdef _bmark_compl_zsh bmark
+    compdef _bmark_compl_zsh bmark -r
+fi
