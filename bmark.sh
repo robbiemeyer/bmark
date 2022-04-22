@@ -3,11 +3,12 @@
 BMARKDELIM='~'
 
 function bmark {
-  local bmarkusage='Usage: bmark  {BMARK} go to {BMARK}
-      -a {BMARK} add bookmark named {BMARK} to current directory
-      -a {BMARK} {DIR} add bookmark named {BMARK} to {DIR}
-      -r {BMARK} remove bookmark named {BMARK}
-      -l         list all bookmarks'
+  local bmarkusage='Usage:
+  bmark    {BMARK}       go to {BMARK}
+  bmark -a {BMARK}       add bookmark named {BMARK} to current directory
+  bmark -a {BMARK} {DIR} add bookmark named {BMARK} to {DIR}
+  bmark -r {BMARK}       remove bookmark named {BMARK}
+  bmark -l               list all bookmarks'
 
 
   if [ -z "$BMARKFILE" ]
