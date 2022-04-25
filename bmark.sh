@@ -56,11 +56,8 @@ function bmark {
     then
       echo "The bmark name can not contain '$BMARKDELIM' as it is the current bmark delimiter" 1>&2
       return 1
-    elif [ $2 ]
-    then
-      echo "${1}${BMARKDELIM}${2}" >> $BMARKFILE
     else
-      echo "${1}${BMARKDELIM}${PWD}" >> $BMARKFILE
+      echo "${1}${BMARKDELIM}${2:-$PWD}" >> $BMARKFILE
     fi
 
   elif [ "$bmarkflags" = "remove" -a $# -eq 1 ]
@@ -68,8 +65,9 @@ function bmark {
 
     if $(cut -d "$BMARKDELIM" -f1 $BMARKFILE 2> /dev/null | grep -qx ${1})
     then
-      sed "/${1}${BMARKDELIM}.*/d" $BMARKFILE > /tmp/bmarktemp
-      mv /tmp/bmarktemp $BMARKFILE
+      local tmpfile=$(mktemp -t bmark_temp.XXXXXXXXXX)
+      grep -ve "^${1}${BMARKDELIM}" $BMARKFILE > $tmpfile
+      mv $tmpfile $BMARKFILE
     else
       echo "Bookmark does not exist" 1>&2
       return 1
@@ -80,9 +78,8 @@ function bmark {
 
     if [ -s $BMARKFILE ]
     then
-
       local maxlen=$(echo Bookmark | cat - $BMARKFILE | cut -d "$BMARKDELIM" -f1 | wc -L)
-      local maxlen=$((maxlen + 2))
+      maxlen=$((maxlen + 2))
       local fmt="%-${maxlen}s%s\n"
 
       printf $fmt Bookmark Path
@@ -91,10 +88,8 @@ function bmark {
       do
         printf $fmt "$name" "$dir"
       done < $BMARKFILE
-
     else
-      echo "No bookmarks found" 1>&2
-      return 1
+      echo "No bookmarks found"
     fi
 
   else
@@ -128,12 +123,12 @@ function _bmark_compl_zsh() {
 
 if type complete &>/dev/null
 then
-    # bash
-    complete -F _bmark_compl_bash bmark
-    complete -F _bmark_compl_bash bmark -r
+  # bash
+  complete -F _bmark_compl_bash bmark
+  complete -F _bmark_compl_bash bmark -r
 elif type compdef &>/dev/null
 then
-    # zsh
-    compdef _bmark_compl_zsh bmark
-    compdef _bmark_compl_zsh bmark -r
+  # zsh
+  compdef _bmark_compl_zsh bmark
+  compdef _bmark_compl_zsh bmark -r
 fi
