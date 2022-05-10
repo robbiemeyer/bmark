@@ -33,16 +33,19 @@ function bmark {
 
   if [ -z "$bmarkflags" -a $# -eq 1 ]
   then
+
     local dir=$(grep -x "${1}${BMARKDELIM}.*" $BMARKFILE 2> /dev/null | cut -d "$BMARKDELIM" -f2- 2> /dev/null)
     if [ -z "$dir" ]
     then
-      echo "Bookmark does not exist"
+      echo "Bookmark does not exist" 1>&2
+      return 1
     else
       cd $dir
     fi
 
   elif [ "$bmarkflags" = "showhelp" ]
   then
+
     echo -e "$bmarkusage"
 
   elif [ "$bmarkflags" = "add" -a $# -le 2 ]
